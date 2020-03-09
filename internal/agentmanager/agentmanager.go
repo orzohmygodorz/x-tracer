@@ -77,7 +77,7 @@ func (a *agent) getAgentPodObject() *v1.Pod {
 			Containers: []v1.Container{
 				{
 					Name:  "agent",
-					Image: "mjace/x-agent",
+					Image: "x-agent",
 					Ports: []v1.ContainerPort{
 						{
 							Name:          "grpc",
@@ -85,7 +85,7 @@ func (a *agent) getAgentPodObject() *v1.Pod {
 							Protocol:      "TCP",
 						},
 					},
-					ImagePullPolicy: v1.PullAlways,
+					ImagePullPolicy: v1.PullNever,
 					SecurityContext: &v1.SecurityContext{
 						Privileged: &t,
 						RunAsUser:  &user,

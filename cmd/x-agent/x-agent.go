@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 	"github.com/docker/docker/client"
-	"github.com/mJace/x-tracer/pkg/streamclient"
+	"github.com/orzohmygodorz/x-tracer/pkg/streamclient"
 	"log"
 	"os"
 	"time"
@@ -57,7 +57,7 @@ func main (){
 
 	log.Printf("Start new client")
 	testClient := streamclient.New("6666",serverIp)
-	testClient.StartClient()
+	testClient.StartClient(topResult.Processes)
 
 	for {
 		fmt.Println("- Sleeping")

@@ -2,7 +2,7 @@ package streamserver
 
 import (
 	"fmt"
-	pb "github.com/mJace/x-tracer/api"
+	pb "github.com/orzohmygodorz/x-tracer/api"
 	"google.golang.org/grpc"
 	"io"
 	"log"
@@ -25,7 +25,10 @@ func (s *StreamServer) RouteLog(stream pb.SentLog_RouteLogServer) error {
 		if err != nil {
 			return err
 		}
+
+        //if r.GetPid()==3423 {
 		fmt.Println(r.Log)
+        //}
 	}
 }
 
