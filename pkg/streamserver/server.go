@@ -26,7 +26,7 @@ func (s *StreamServer) RouteLog(stream pb.SentLog_RouteLogServer) error {
 			return err
 		}
 
-        //if r.GetPid()==3423 {
+        //if r.GetPid()<50000 {
 		fmt.Println(r.Log)
         //}
 	}

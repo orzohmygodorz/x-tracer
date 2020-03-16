@@ -5,8 +5,8 @@ import (
 	"google.golang.org/grpc"
 	pb "github.com/orzohmygodorz/x-tracer/api"
 	"github.com/orzohmygodorz/x-tracer/pkg/tcptracer"
-	//"github.com/mJace/x-tracer/pkg/tcpconnlat"
-	//"time"
+	"github.com/orzohmygodorz/x-tracer/pkg/tcpconnlat"
+	"time"
     "log"
     "strconv"
 )
@@ -31,46 +31,59 @@ func (c *StreamClient) StartClient (pidList [][]string) {
 
 	defer connect.Close()
     defer tcptracer.Stop()
+    defer tcpconnlat.Stop()
 
-	client := pb.NewSentLogClient(connect)
-    /**/
-    for i := range pidList {
-        for j:= range pidList[i] {
-            log.Printf(pidList[i][j])
-        }
-    }
+    client := pb.NewSentLogClient(connect)
+
     logchannel := make(chan tcptracer.TcpIpv4Event, 1)
     go tcptracer.Start(logchannel)
-    //var event tcptracer.TcpIpv4Event
-    /*go func() {
-        for n := 0; n<10; n++ {
-            err = c.startLogStream(client, &pb.Log{
-                Pid:                  3422,
-                ProbeName:            "net",
-                Log:                  <-logchannel,
-                TimeStamp:            "local current time",
-            })
-        }
-    }()*/
-    /**/
-    for i:=0; i<1000; i++ {
-        event := <-logchannel
-        for j:=range pidList {
-            for k:= range pidList[j] {
-                //log.Println("  %s  %s", strconv.FormatUint(uint64(event.Pid), 10), pidList[j][k])
-                if strconv.FormatUint(uint64(event.Pid), 10) == pidList[j][k] {
-                    err = c.startLogStream(client, &pb.Log{
-                        Pid:                  3422,
-                        ProbeName:            "net",
-                        Log:                  tcptracer.TcpIpv4EventToString(event),
-                        TimeStamp:            "local current time",
-                    })
-                    if err!= nil {
-                        log.Fatalf("startLogStream fail.err: %v", err)
+    go func() {
+        for i := 0; i<100; i++ {
+            event := <-logchannel
+            for j:=range pidList {
+                for k:= range pidList[j] {
+                    //log.Println("  %s  %s", strconv.FormatUint(uint64(event.Pid), 10), pidList[j][k])
+                    if strconv.FormatUint(uint64(event.Pid), 10) == pidList[j][k] {
+                        err = c.startLogStream(client, &pb.Log{
+                            Pid:                  int64(event.Pid),
+                            ProbeName:            "net",
+                            Log:                  tcptracer.TcpIpv4EventToString(event),
+                            TimeStamp:            "local current time",
+                        })
+                        if err!= nil {
+                            log.Fatalf("startLogStream fail.err: %v", err)
+                        }
                     }
                 }
             }
         }
+    }()
+
+    tcpconnlatLogChannel := make(chan tcpconnlat.TcpIpv4Data, 1)
+    go tcpconnlat.Start( tcpconnlatLogChannel )
+    go func() {
+        for i := 0; i<100; i++ {
+            tcpconnlatEvent := <-tcpconnlatLogChannel
+            for j:=range pidList {
+                for k:= range pidList[j] {
+                    if strconv.FormatUint(uint64(tcpconnlatEvent.Pid), 10) == pidList[j][k] {
+                        err = c.startLogStream(client, &pb.Log{
+                            Pid:                  int64(tcpconnlatEvent.Pid),
+                            ProbeName:            "net",
+                            Log:                  tcpconnlat.TcpIpv4DataToString(tcpconnlatEvent),
+                            TimeStamp:            "local current time",
+                        })
+                        if err!= nil {
+                            log.Fatalf("startLogStream fail.err: %v", err)
+                        }
+                    }
+                }
+            }
+        }
+    }()
+    for i := 30; i>0; i--{
+        //log.Printf("[main] Call tcptracer.Stop() in %d seconds\n", i)
+        time.Sleep(time.Duration(1) * time.Second)
     }
 }
 

@@ -66,17 +66,6 @@ func TcpIpv4EventToString(event TcpIpv4Event) string {
                             event.Dport,
                             event.Netns)
 
-/*    fmt.Printf("%-8s %-6s %-11s %-5s %-15s %-15s %-5s %-5s %-11s\n",
-                "TCPTYPE",
-                "PID",
-                "COMM",
-                "IP",
-                "SADDR",
-                "DADDR",
-                "SPORT",
-                "DPORT",
-                "NETNS")
-*/
     fmt.Printf("%-8s %-6d %-11s IPv%-2d %-15s %-15s %-5d %-5d %-11d\n", 
                 TcpTypeIntToString(event.TcpType),
                 event.Pid,
@@ -153,7 +142,7 @@ func Start( logchannel chan TcpIpv4Event ) {
     sig := make(chan os.Signal, 1)
     signal.Notify(sig, os.Interrupt, os.Kill)
 
-    fmt.Println("[lib] Tcp Tracer is Ready")
+    fmt.Println("[gobpf] tcptracer is Ready")
     fmt.Printf("%-8s %-6s %-11s %-5s %-15s %-15s %-5s %-5s %-11s\n",
                 "TCPTYPE",
                 "PID",
@@ -186,5 +175,5 @@ func Start( logchannel chan TcpIpv4Event ) {
 
 func Stop() {
     IsTracerDoneSig <- true
-    fmt.Println("[lib] Tcp Tracer is Stopped")
+    fmt.Println("[gobpf] tcptracer is Stopped")
 }

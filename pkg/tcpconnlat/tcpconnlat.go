@@ -41,7 +41,7 @@ func TcpTypeIntToString(TcpType uint32) string {
     return result
 }
 
-type tcpIpv4Data struct {
+type TcpIpv4Data struct {
     TSus        uint64 // Current TimeStamp in nanoseconds
     Pid         uint32
     Saddr       uint32
@@ -54,7 +54,7 @@ type tcpIpv4Data struct {
     Comm        [16]byte // TASK_COMM_LEN=16
 }
 
-func tcpIpv4DataToString(event tcpIpv4Data) string {
+func TcpIpv4DataToString(event TcpIpv4Data) string {
     var logString string
     logString = fmt.Sprintf("%-9.3f %-6d  %-15s %-15s IPv%-2d %-5d %-8.2f %-11s",
                             float64(event.TSus - start_ts)/1000000,
@@ -65,12 +65,21 @@ func tcpIpv4DataToString(event tcpIpv4Data) string {
                             event.Dport,
                             float64(event.DeltaNs)/1000,
                             C.GoString( ((*C.char)(unsafe.Pointer(&event.Comm))) ))
+    fmt.Printf("%-9.3f %-6d  %-15s %-15s IPv%-2d %-5d %-8.2f %-11s\n",
+                float64(event.TSus - start_ts)/1000000,
+                event.Pid,
+                IpIntToByte(event.Saddr),
+                IpIntToByte(event.Daddr),
+                event.Ip,
+                event.Dport,
+                float64(event.DeltaNs)/1000,
+                C.GoString( ((*C.char)(unsafe.Pointer(&event.Comm))) ))
     return logString
 }
 
 var IsTracerDoneSig = make(chan bool, 1)
 
-func Start(logchannel chan string) {
+func Start( logchannel chan TcpIpv4Data ) {
 /*    _, b, _, _ := runtime.Caller(0)
     basePath   := filepath.Dir(b)
     newPath := filepath.Join(basePath, "tcpconnlat.bt")
@@ -110,9 +119,9 @@ func Start(logchannel chan string) {
     sig := make(chan os.Signal, 1)
     signal.Notify(sig, os.Interrupt, os.Kill)
 
-    fmt.Println("[lib] Tcp Tracer is Ready")
+    fmt.Println("[gobpf] tcpconnlat is Ready")
     go func() {
-        var event tcpIpv4Data
+        var event TcpIpv4Data
         for {
             data := <-channel
             err := binary.Read(bytes.NewBuffer(data), bpf.GetHostByteOrder(), &event)
@@ -123,8 +132,9 @@ func Start(logchannel chan string) {
             if start_ts==0 {
                 start_ts = event.TSus
             }
-            fmt.Println( tcpIpv4DataToString(event) )
-            logchannel <- tcpIpv4DataToString(event)
+            //fmt.Println( TcpIpv4DataToString(event) )
+            //logchannel <- TcpIpv4DataToString(event)
+            logchannel <- event
             start_ts = event.TSus
         }
     }()
@@ -136,6 +146,6 @@ func Start(logchannel chan string) {
 
 func Stop() {
     IsTracerDoneSig <- true
-    fmt.Println("[lib] Tcp Tracer is Stopped")
+    fmt.Println("[gobpf] tcpconnlat is Stopped")
 }
 
